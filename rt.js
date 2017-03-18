@@ -1,11 +1,13 @@
 /**
  * Created by Dexter on 3/17/2017.
  */
+"use strict";
 // for debugging
 var rt;
 function start(canvas) {
     rt = new RayTracer(canvas);
 }
+exports.start = start;
 // Wall info, using enum makes the definitions painfully long even using vim
 var E = 0;
 var R = 1;

@@ -4,7 +4,7 @@
 
 // for debugging
 let rt: RayTracer;
-function start(canvas: HTMLCanvasElement) {
+export function start(canvas: HTMLCanvasElement) {
     rt = new RayTracer(canvas);
 }
 
