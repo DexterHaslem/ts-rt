@@ -1,13 +1,11 @@
 /**
  * Created by Dexter on 3/17/2017.
  */
-"use strict";
 // for debugging
 var rt;
 function start(canvas) {
     rt = new RayTracer(canvas);
 }
-exports.start = start;
 // Wall info, using enum makes the definitions painfully long even using vim
 var E = 0;
 var R = 1;
@@ -39,17 +37,17 @@ var RayTracer = (function () {
             [R, R, R, R, R, R, R, R, R, R, R, R, R, R, R, R],
             [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
             [R, E, E, E, E, E, E, E, E, E, E, G, G, G, E, R],
-            [R, E, E, E, E, E, E, E, E, E, E, G, E, G, E, R],
-            [R, E, E, E, E, E, E, E, E, E, E, G, G, G, E, R],
+            [R, E, E, B, B, B, E, E, E, E, E, G, E, G, E, R],
+            [R, E, E, B, B, B, E, E, E, E, E, G, G, G, E, R],
             [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
             [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
             [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
             [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
             [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
+            [R, E, E, G, G, E, E, E, E, E, E, E, E, E, E, R],
+            [R, E, E, G, G, E, E, E, E, E, E, E, E, E, E, R],
             [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
-            [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
-            [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
-            [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
+            [R, E, E, E, E, E, E, E, E, B, B, B, E, E, E, R],
             [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
             [R, R, R, R, R, R, R, R, R, R, R, R, R, R, R, R],
         ];
@@ -63,7 +61,7 @@ var RayTracer = (function () {
         // TODO: getting stuck against walls :-(
         this.input = function () {
             var moveSpeed = 0.10; //this._frameTime * 1;
-            var rotSpeed = 0.01; //this._frameTime * 1;
+            var rotSpeed = 0.03; //this._frameTime * 1;
             if (_this._keysDown["w"]) {
                 // forward
                 var tryX = Math.ceil(_this._loc.x + _this._dir.x * moveSpeed);

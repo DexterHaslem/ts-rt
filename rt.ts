@@ -4,7 +4,7 @@
 
 // for debugging
 let rt: RayTracer;
-export function start(canvas: HTMLCanvasElement) {
+function start(canvas: HTMLCanvasElement) {
     rt = new RayTracer(canvas);
 }
 
@@ -41,17 +41,17 @@ class RayTracer {
         [R, R, R, R, R, R, R, R, R, R, R, R, R, R, R, R],
         [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
         [R, E, E, E, E, E, E, E, E, E, E, G, G, G, E, R],
-        [R, E, E, E, E, E, E, E, E, E, E, G, E, G, E, R],
-        [R, E, E, E, E, E, E, E, E, E, E, G, G, G, E, R],
+        [R, E, E, B, B, B, E, E, E, E, E, G, E, G, E, R],
+        [R, E, E, B, B, B, E, E, E, E, E, G, G, G, E, R],
         [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
         [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
         [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
         [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
         [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
+        [R, E, E, G, G, E, E, E, E, E, E, E, E, E, E, R],
+        [R, E, E, G, G, E, E, E, E, E, E, E, E, E, E, R],
         [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
-        [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
-        [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
-        [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
+        [R, E, E, E, E, E, E, E, E, B, B, B, E, E, E, R],
         [R, E, E, E, E, E, E, E, E, E, E, E, E, E, E, R],
         [R, R, R, R, R, R, R, R, R, R, R, R, R, R, R, R],
     ];
@@ -78,7 +78,7 @@ class RayTracer {
     // TODO: getting stuck against walls :-(
     private input = () => {
         const moveSpeed = 0.10; //this._frameTime * 1;
-        const rotSpeed = 0.01; //this._frameTime * 1;
+        const rotSpeed = 0.03; //this._frameTime * 1;
         if (this._keysDown["w"]) {
             // forward
             const tryX = Math.ceil(this._loc.x + this._dir.x * moveSpeed);
