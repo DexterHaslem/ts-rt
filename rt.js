@@ -12,7 +12,8 @@ var R = 1;
 var G = 2;
 var B = 3;
 // this is intentionally not complete, just needed a more simple way to stuff
-// x/y vector info for direction vector and plane direction
+// x/y vector info for direction vector and plane direction.
+// also abused for locations (points)
 var Vector = (function () {
     function Vector(x, y) {
         var _this = this;
@@ -57,7 +58,48 @@ var RayTracer = (function () {
             var fps = 1.0 / frameTime;
             return Math.round(fps);
         };
+        // TODO: getting stuck against walls :-(
         this.input = function () {
+            var moveSpeed = 0.10; //this._frameTime * 1;
+            var rotSpeed = 0.01; //this._frameTime * 1;
+            if (_this._keysDown["w"]) {
+                // forward
+                var tryX = Math.ceil(_this._loc.x + _this._dir.x * moveSpeed);
+                if (!_this._world[tryX][_this._loc.y]) {
+                    _this._loc.x += _this._dir.x * moveSpeed;
+                }
+                else {
+                    _this._loc.y += _this._dir.y * moveSpeed;
+                }
+            }
+            if (_this._keysDown["s"]) {
+                // back
+                var tryX = Math.ceil(_this._loc.x - _this._dir.x * moveSpeed);
+                if (!_this._world[tryX][_this._loc.y]) {
+                    _this._loc.x -= _this._dir.x * moveSpeed;
+                }
+                else {
+                    _this._loc.y -= _this._dir.y * moveSpeed;
+                }
+            }
+            // NOTE about movement. very naive, no way to strafe, you can go forward/back
+            // and rotate the camera from that one track. need to add legit strafing..
+            // rotate, not strafe on a/d. KEYBOARD TURNERS
+            // to turn, change both cam dir and plane
+            /* rot matrix
+            [ cos(a) -sin(a) ]
+            [ sin(a)  cos(a) ]
+            */
+            // rotate left/right
+            if (_this._keysDown["d"] || _this._keysDown["a"]) {
+                var rot = _this._keysDown["d"] ? -rotSpeed : rotSpeed;
+                var oldX = _this._dir.x;
+                _this._dir.x = _this._dir.x * Math.cos(rot) - _this._dir.y * Math.sin(rot);
+                _this._dir.y = oldX * Math.sin(rot) + _this._dir.y * Math.cos(rot);
+                var oldPlaneX = _this._plane.x;
+                _this._plane.x = _this._plane.x * Math.cos(rot) - _this._plane.y * Math.sin(rot);
+                _this._plane.y = oldPlaneX * Math.sin(rot) + _this._plane.y * Math.cos(rot);
+            }
         };
         this.wallColor = function (w, isSide) {
             var r, g, b = 0;
@@ -93,59 +135,58 @@ var RayTracer = (function () {
             _this._ctx.clearRect(0, 0, w, h);
             _this._ctx.font = "14px Arial";
             _this._ctx.fillText("FPS: " + _this.fps(ts), 2, 16);
+            // TODO: cleanup, functionally map
             for (var x = 0; x < w; x++) {
                 var camX = 2 * x / w - 1;
                 var rayLoc = new Vector(_this._loc.x, _this._loc.y);
                 var rayDir = new Vector(_this._dir.x + _this._plane.x * camX, _this._dir.y + _this._plane.y * camX);
-                var mapVec = new Vector(Math.floor(rayLoc.x), Math.floor(rayLoc.y));
+                var map = new Vector(Math.floor(rayLoc.x), Math.floor(rayLoc.y));
                 var distX = Math.sqrt(1 + Math.pow(rayDir.y, 2) / Math.pow(rayDir.x, 2));
                 var distY = Math.sqrt(1 + Math.pow(rayDir.x, 2) / Math.pow(rayDir.y, 2));
                 //console.log(`mapVec=${mapVec} distX=${distX} distY=${distY}`);
-                var stepVec = new Vector(0, 0);
-                var hit = false;
-                var sideDistanceVec = new Vector(0, 0);
+                var step = new Vector(0, 0);
+                var sideDist = new Vector(0, 0);
                 if (rayDir.x < 0) {
-                    stepVec.x = -1;
-                    sideDistanceVec.x = (rayLoc.x - mapVec.x) * distX;
+                    step.x = -1;
+                    sideDist.x = (rayLoc.x - map.x) * distX;
                 }
                 else {
-                    stepVec.x = 1;
-                    sideDistanceVec.x = (mapVec.x + 1 - rayLoc.x) * distX;
+                    step.x = 1;
+                    sideDist.x = (map.x + 1 - rayLoc.x) * distX;
                 }
                 if (rayDir.y < 0) {
-                    stepVec.y = -1;
-                    sideDistanceVec.y = (rayLoc.y - mapVec.y) * distY;
+                    step.y = -1;
+                    sideDist.y = (rayLoc.y - map.y) * distY;
                 }
                 else {
-                    stepVec.y = 1;
-                    sideDistanceVec.y = (mapVec.y + 1 - rayLoc.y) * distY;
+                    step.y = 1;
+                    sideDist.y = (map.y + 1 - rayLoc.y) * distY;
                 }
-                // DDA
                 var side = 0;
                 while (true) {
-                    if (sideDistanceVec.x < sideDistanceVec.y) {
-                        sideDistanceVec.x += distX;
-                        mapVec.x += stepVec.x;
+                    if (sideDist.x < sideDist.y) {
+                        sideDist.x += distX;
+                        map.x += step.x;
                         side = 0;
                     }
                     else {
-                        sideDistanceVec.y += distY;
-                        mapVec.y += stepVec.y;
+                        sideDist.y += distY;
+                        map.y += step.y;
                         side = 1;
                     }
                     // for some reason, this doesnt work in a do/while
-                    if (_this._world[mapVec.x][mapVec.y] > 0) {
+                    if (_this._world[map.x][map.y] > 0) {
                         break;
                     }
                 }
                 // projection
                 var perpDist = side === 0 ?
-                    (mapVec.x - rayLoc.x + (1 - stepVec.x) / 2) / rayDir.x :
-                    (mapVec.y - rayLoc.y + (1 - stepVec.y) / 2) / rayDir.y;
+                    (map.x - rayLoc.x + (1 - step.x) / 2) / rayDir.x :
+                    (map.y - rayLoc.y + (1 - step.y) / 2) / rayDir.y;
                 var lineHeight = h / perpDist;
                 var start_1 = Math.max(0, -lineHeight / 2 + h / 2);
                 var end = Math.min(h - 1, lineHeight / 2 + h / 2);
-                var color = _this.wallColor(_this._world[mapVec.x][mapVec.y], side > 0);
+                var color = _this.wallColor(_this._world[map.x][map.y], side > 0);
                 _this._ctx.strokeStyle = color;
                 _this._ctx.beginPath();
                 _this._ctx.moveTo(x, start_1);
@@ -161,7 +202,14 @@ var RayTracer = (function () {
             requestAnimationFrame(_this.frame);
         };
         this._ctx = _canvas.getContext("2d");
+        this._keysDown = {};
+        // such a hack: canvas is not desigend to get keyboard events,
+        // slam its tab index so it gets the keyboard events
+        _canvas.tabIndex = 1000;
+        _canvas.addEventListener("keydown", function (e) { return _this._keysDown[e.key] = true; });
+        _canvas.addEventListener("keyup", function (e) { return _this._keysDown[e.key] = false; });
         requestAnimationFrame(this.frame);
     }
     return RayTracer;
 }());
+//# sourceMappingURL=rt.js.map
